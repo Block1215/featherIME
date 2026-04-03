@@ -1,0 +1,16 @@
+{
+	"required": false,
+	"package": "dev.bl.feathercaramel.mixin",
+	"compatibilityLevel": "JAVA_17",
+	"client": [
+		"MixinMinecraft",
+		"MixinChatScreen",
+		"MixinEditBox",
+		"MixinSignEditScreen",
+		"MixinBookEditScreen",
+		"MixinAbstractWidget"
+	],
+	"injectors": {
+		"defaultRequire": 0
+	}
+}
