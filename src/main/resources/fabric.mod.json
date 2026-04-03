@@ -1,0 +1,26 @@
+{
+	"schemaVersion": 1,
+	"id": "featherime",
+	"version": "${version}",
+	"name": "FeatherIME",
+	"description": "Feather Client compatible IME improvement mod for Minecraft. Based on CocoaInput-lib.",
+	"authors": [ "@Bl" ],
+	"license": "LGPL-3.0-only",
+	"icon": "assets/featherIME/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [ "dev.bl.feathercaramel.FeatherCaramelChatClient" ]
+	},
+	"accessWidener": "featherIME.accesswidener",
+	"mixins": [
+		{ "config": "featherIME.mixins.json", "environment": "client" }
+	],
+	"depends": {
+		"fabricloader": ">=0.14.0",
+		"minecraft": "~1.17.1",
+		"java": ">=16"
+	},
+	"suggests": {
+		"fabric-api": "*"
+	}
+}
