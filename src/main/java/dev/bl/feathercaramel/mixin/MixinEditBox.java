@@ -143,7 +143,7 @@ public abstract class MixinEditBox implements EditBoxController {
     }
 
 
-    @Inject(method = "render", at = @At("TAIL"), require = 0)
+    @Inject(method = "renderWidget", at = @At("TAIL"), require = 0)
     private void featherCaramel$renderUnderline(
             final net.minecraft.client.gui.GuiGraphics g,
             final int mx, final int my, final float td, final CallbackInfo ci) {
