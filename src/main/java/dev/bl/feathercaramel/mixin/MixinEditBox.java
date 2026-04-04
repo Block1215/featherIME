@@ -24,6 +24,15 @@ public abstract class MixinEditBox implements EditBoxController {
     @Shadow public  int     highlightPos;
     @Shadow public  int     cursorPos;
     @Shadow public  String  value;
+    @Shadow public  int     displayPos;
+    @Shadow private boolean bordered;
+    @Shadow public  net.minecraft.client.gui.Font font;
+    // Abstract @Shadow for getX/getY/getHeight removed: Feather loads no refMap, so
+    // Mixin looks up the baked intermediary name directly in class_342.
+    // Use @Unique wrappers — JVM dispatch resolves the inherited impl at runtime.
+    @Unique private int featherCaramel$getX()      { return ((EditBox)(Object)this).getX();      }
+    @Unique private int featherCaramel$getY()      { return ((EditBox)(Object)this).getY();      }
+    @Unique private int featherCaramel$getHeight() { return ((EditBox)(Object)this).getHeight(); }
 
     @Override
     public WrapperEditBox featherCaramel$wrapper() { return featherCaramel$wrapper; }
@@ -74,8 +83,16 @@ public abstract class MixinEditBox implements EditBoxController {
     @Inject(method = "setValue", at = @At("TAIL"), require = 0)
     private void featherCaramel$setValueTail(final String text, final CallbackInfo ci) {
         if (featherCaramel$wrapper != null && featherCaramel$wrapper.valueChanged) {
-            cursorPos    = featherCaramel$cacheCursor;
-            highlightPos = featherCaramel$cacheHighlight;
+            value = text;
+            final int sp = featherCaramel$wrapper.getSecondStartPos();
+            final int maxPos = value.length();
+            if (sp >= 0) {
+                cursorPos    = Math.min(sp, maxPos);
+                highlightPos = Math.min(sp, maxPos);
+            } else {
+                cursorPos    = Math.min(featherCaramel$cacheCursor, maxPos);
+                highlightPos = Math.min(featherCaramel$cacheHighlight, maxPos);
+            }
             featherCaramel$wrapper.valueChanged = false;
         } else {
             featherCaramel$forceUpdateOrigin();
@@ -97,6 +114,9 @@ public abstract class MixinEditBox implements EditBoxController {
         if (featherCaramel$wrapper != null
                 && featherCaramel$wrapper.getStatus() == AbstractIMEWrapper.InputStatus.PREVIEW) {
             value = featherCaramel$wrapper.getOrigin();
+            final int maxPos = value.length();
+            if (cursorPos > maxPos) cursorPos = maxPos;
+            if (highlightPos > maxPos) highlightPos = maxPos;
         }
     }
 
@@ -121,6 +141,28 @@ public abstract class MixinEditBox implements EditBoxController {
         }
     }
 
+
+    @Inject(method = "renderWidget", at = @At("TAIL"), require = 0)
+    private void featherCaramel$renderUnderline(
+            final net.minecraft.client.gui.GuiGraphics g,
+            final int mx, final int my, final float td, final CallbackInfo ci) {
+        if (featherCaramel$wrapper == null) return;
+        if (featherCaramel$wrapper.getStatus() != AbstractIMEWrapper.InputStatus.PREVIEW) return;
+        final int fep = featherCaramel$wrapper.getFirstEndPos();
+        final int ssp = featherCaramel$wrapper.getSecondStartPos();
+        if (fep < 0 || ssp <= fep) return;
+        final int padX = bordered ? 4 : 0;
+        final int padY = bordered ? (featherCaramel$getHeight() - 8) / 2 : 0;
+        final int baseX = featherCaramel$getX() + padX;
+        final int uY    = featherCaramel$getY() + padY + font.lineHeight;
+        final int dp    = displayPos;
+        final int c1    = Math.min(Math.max(fep, dp), value.length());
+        final int c2    = Math.min(Math.max(ssp, dp), value.length());
+        if (c2 <= c1) return;
+        final int x1 = baseX + font.width(value.substring(dp, c1));
+        final int x2 = baseX + font.width(value.substring(dp, c2));
+        g.fill(x1, uY, x2, uY + 1, 0xFFFFFFFF);
+    }
     @Unique
     private void featherCaramel$setStatusToNone() {
         if (featherCaramel$wrapper != null) featherCaramel$wrapper.setToNoneStatus();
