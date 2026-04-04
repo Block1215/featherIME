@@ -34,11 +34,12 @@ public abstract class MixinChatScreen extends Screen {
 
     @Unique private static final int TOOLTIP_TIME = 500;
     @Unique private static final int FADE_TIME    = 250;
-    @Unique private KeyboardStatus.Language featherCaramel$lastLang;
-    @Unique private long                    featherCaramel$changeTime;
+    @Unique private static KeyboardStatus.Language featherCaramel$lastLang;
+    @Unique private static long                    featherCaramel$changeTime;
 
     @Inject(method = "init", at = @At("TAIL"), require = 0)
     private void featherCaramel$onInit(final CallbackInfo ci) {
+        featherCaramel$lastLang = null;
         if (this.input == null) return;
         final WrapperEditBox w = EditBoxController.getWrapper(this.input);
         if (w != null) w.setFocused(true);

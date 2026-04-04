@@ -5,7 +5,9 @@
 	"client": [
 		"MixinMinecraft",
 		"MixinChatScreen",
-		"MixinEditBox"
+		"MixinEditBox",
+		"MixinAbstractSignEditScreen",
+		"MixinBookEditScreen"
 	],
 	"injectors": {
 		"defaultRequire": 0

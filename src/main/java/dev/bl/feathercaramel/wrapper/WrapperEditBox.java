@@ -52,7 +52,8 @@ public final class WrapperEditBox extends AbstractIMEWrapper {
 
     @Override
     public Rect getRect() {
-        final int   xWidth = wrapped.font.width(wrapped.value.substring(0, wrapped.getCursorPosition()));
+        final int cursor = Math.min(wrapped.getCursorPosition(), wrapped.value.length());
+        final int   xWidth = wrapped.font.width(wrapped.value.substring(0, cursor));
         final float x      = xWidth + wrapped.getX() + (wrapped.bordered ? 4 : 0);
         final float y      = wrapped.font.lineHeight + wrapped.getY()
                              + (wrapped.bordered ? ((wrapped.getHeight() - 8) / 2.0f) : 0);

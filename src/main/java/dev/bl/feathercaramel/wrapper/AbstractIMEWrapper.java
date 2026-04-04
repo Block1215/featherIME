@@ -68,8 +68,8 @@ public abstract class AbstractIMEWrapper {
         ModLogger.debug("[IME] appendPreview current=({}) preview=({})", origin, typing);
         status = InputStatus.PREVIEW;
 
-        final int start   = Math.min(getCursorPos(), getHighlightPos());
-        final int end     = Math.max(getCursorPos(), getHighlightPos());
+        final int start   = Math.min(Math.min(getCursorPos(), getHighlightPos()), origin.length());
+        final int end     = Math.min(Math.max(getCursorPos(), getHighlightPos()), origin.length());
         final boolean same = (start == end);
         final int lastPos  = origin.length();
 
