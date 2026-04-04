@@ -27,9 +27,12 @@ public abstract class MixinEditBox implements EditBoxController {
     @Shadow public  int     displayPos;
     @Shadow private boolean bordered;
     @Shadow public  net.minecraft.client.gui.Font font;
-    @Shadow public abstract int getX();
-    @Shadow public abstract int getY();
-    @Shadow public abstract int getHeight();
+    // Abstract @Shadow for getX/getY/getHeight removed: Feather loads no refMap, so
+    // Mixin looks up the baked intermediary name directly in class_342.
+    // Use @Unique wrappers — JVM dispatch resolves the inherited impl at runtime.
+    @Unique private int featherCaramel$getX()      { return ((EditBox)(Object)this).getX();      }
+    @Unique private int featherCaramel$getY()      { return ((EditBox)(Object)this).getY();      }
+    @Unique private int featherCaramel$getHeight() { return ((EditBox)(Object)this).getHeight(); }
 
     @Override
     public WrapperEditBox featherCaramel$wrapper() { return featherCaramel$wrapper; }
@@ -139,7 +142,7 @@ public abstract class MixinEditBox implements EditBoxController {
     }
 
 
-    @Inject(method = "render", at = @At("TAIL"), require = 0)
+    @Inject(method = "renderWidget", at = @At("TAIL"), require = 0)
     private void featherCaramel$renderUnderline(
             final net.minecraft.client.gui.GuiGraphics g,
             final int mx, final int my, final float td, final CallbackInfo ci) {
@@ -149,9 +152,9 @@ public abstract class MixinEditBox implements EditBoxController {
         final int ssp = featherCaramel$wrapper.getSecondStartPos();
         if (fep < 0 || ssp <= fep) return;
         final int padX = bordered ? 4 : 0;
-        final int padY = bordered ? (getHeight() - 8) / 2 : 0;
-        final int baseX = getX() + padX;
-        final int uY    = getY() + padY + font.lineHeight;
+        final int padY = bordered ? (featherCaramel$getHeight() - 8) / 2 : 0;
+        final int baseX = featherCaramel$getX() + padX;
+        final int uY    = featherCaramel$getY() + padY + font.lineHeight;
         final int dp    = displayPos;
         final int c1    = Math.min(Math.max(fep, dp), value.length());
         final int c2    = Math.min(Math.max(ssp, dp), value.length());
