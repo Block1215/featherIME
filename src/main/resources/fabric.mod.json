@@ -5,7 +5,7 @@
 	"name": "FeatherIME",
 	"description": "Feather Client compatible IME improvement mod for Minecraft. Based on CocoaInput-lib.",
 	"authors": [ "@Bl" ],
-	"license": "LGPL-3.0-only",
+	"license": "MMPL-1.0.1",
 	"icon": "assets/featherIME/icon.png",
 	"environment": "client",
 	"entrypoints": {
