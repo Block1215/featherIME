@@ -1,0 +1,40 @@
+# Gradle
+build/
+.gradle/
+out/
+
+# IDE
+bin/
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Minecraft / Fabric Loom
+run/
+remappedSrc/
+
+# C/native build artifacts (experimental native source tree)
+*.o
+*.obj
+*.d
+*.gch
+*.pch
+*.exe
+*.out
+
+# Native libraries: ignore loose build outputs everywhere...
+*.dll
+*.so
+*.so.*
+*.dylib
+# ...EXCEPT the redistributable natives bundled in the jar (MMPL_J 1.0.1,
+# from CocoaInput-lib). These MUST be committed or the repo will not build.
+!src/main/resources/native/*.dll
+!src/main/resources/native/*.so
+!src/main/resources/native/*.dylib
+
+# macOS
+.DS_Store

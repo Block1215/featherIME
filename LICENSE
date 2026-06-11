@@ -1,0 +1,32 @@
+featherIME
+Copyright (C) 2024-2026 @Bl
+Based on caramelChat (C) 2023 LemonCaramel <https://github.com/LemonCaramel/caramelChat>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+================================================================================
+This mod is a DUAL-LICENSED derivative work. See CREDITS.md for full attribution.
+================================================================================
+
+  * Java code (derived from caramelChat) : LGPL-3.0-or-later
+        -> LICENSES/LGPL-3.0-or-later.txt
+        -> LICENSES/GPL-3.0-or-later.txt   (referenced by the LGPL)
+
+  * Bundled native libraries (built from CocoaInput-lib by
+    Korea-Minecraft-Forum <https://github.com/Korea-Minecraft-Forum/CocoaInput-lib>)
+        : MMPL_J 1.0.1 (Minecraft Mod Public License Japanese Translation)
+        -> LICENSES/MMPL_J-1.0.1.txt
+
+Full third-party attribution, source code locations for the bundled native
+libraries, and the list of modifications are in CREDITS.md.
