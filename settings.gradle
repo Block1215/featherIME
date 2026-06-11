@@ -9,4 +9,5 @@ pluginManagement {
 	}
 }
 
-rootProject.name = "featherIME"
+// Should match your modid
+rootProject.name = 'featherime'
