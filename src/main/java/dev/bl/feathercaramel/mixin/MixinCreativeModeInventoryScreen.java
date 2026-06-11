@@ -20,10 +20,12 @@
  */
 package dev.bl.feathercaramel.mixin;
 
+import java.util.Objects;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -47,10 +49,22 @@ public abstract class MixinCreativeModeInventoryScreen {
 
     @Shadow private void refreshSearchResults() {}
 
+    @Unique private String featherCaramel$lastSearch;
+
     @Inject(method = "init", at = @At("TAIL"), require = 0)
     private void featherCaramel$attachSearchResponder(final CallbackInfo ci) {
         if (searchBox != null) {
-            searchBox.setResponder(s -> this.refreshSearchResults());
+            featherCaramel$lastSearch = searchBox.getValue();
+            // 値が実際に変わった時だけ検索する。setValue は同値でも responder を
+            // 呼ぶため (フォーカス変更時の IME ラッパーの setValue(origin) など)、
+            // 無条件に refreshSearchResults() するとスクロール位置が先頭にリセット
+            // され、スロットクリックが別アイテムを掴む問題が起きる。
+            searchBox.setResponder(s -> {
+                if (!Objects.equals(s, featherCaramel$lastSearch)) {
+                    featherCaramel$lastSearch = s;
+                    this.refreshSearchResults();
+                }
+            });
         }
     }
 }
