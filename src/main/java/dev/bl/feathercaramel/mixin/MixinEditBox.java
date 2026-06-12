@@ -41,6 +41,7 @@ public abstract class MixinEditBox implements EditBoxController {
     @Unique private int            featherCaramel$cacheHighlight;
 
     @Shadow private boolean canLoseFocus;
+    @Shadow private boolean isEditable;
     @Shadow public  int     highlightPos;
     @Shadow public  int     cursorPos;
     @Shadow public  String  value;
@@ -153,17 +154,31 @@ public abstract class MixinEditBox implements EditBoxController {
         }
     }
 
+    // IME の有効化は「編集可能 (isEditable)」な欄に限る。
+    // 金床の名前欄は setCanLoseFocus(false) でフォーカス固定だが、アイテム未設置時は
+    // setEditable(false) になっている。editable を見ずに IME を ON にすると、
+    // 打てないのに OS 側で変換が始まり、その変換中文字列が IME コンテキストに残って
+    // アイテム設置後に出現するバグになる。
+
     @Inject(method = "setFocused", at = @At("TAIL"), require = 0)
     private void featherCaramel$setFocused(final boolean focused, final CallbackInfo ci) {
         if (featherCaramel$wrapper != null) {
-            featherCaramel$wrapper.setFocused(focused || !canLoseFocus);
+            featherCaramel$wrapper.setFocused((focused || !canLoseFocus) && isEditable);
         }
     }
 
     @Inject(method = "setCanLoseFocus", at = @At("HEAD"), require = 0)
     private void featherCaramel$setCanLoseFocus(final boolean canLoseFocus, final CallbackInfo ci) {
-        if (featherCaramel$wrapper != null && !canLoseFocus) {
+        if (featherCaramel$wrapper != null && !canLoseFocus && isEditable) {
             featherCaramel$wrapper.setFocused(true);
+        }
+    }
+
+    @Inject(method = "setEditable", at = @At("TAIL"), require = 0)
+    private void featherCaramel$setEditable(final boolean editable, final CallbackInfo ci) {
+        if (featherCaramel$wrapper != null) {
+            final EditBox self = (EditBox) (Object) this;
+            featherCaramel$wrapper.setFocused(editable && (self.isFocused() || !canLoseFocus));
         }
     }
 
