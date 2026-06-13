@@ -28,7 +28,6 @@ import dev.bl.feathercaramel.driver.IOperator;
 import dev.bl.feathercaramel.util.ModLogger;
 import dev.bl.feathercaramel.wrapper.AbstractIMEWrapper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.gui.screens.Screen;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWNativeX11;
@@ -76,7 +75,7 @@ public final class X11Controller implements IController {
     private void ensureNativeInitialized() {
         if (nativeInitialized) return;
         try {
-            WINDOW_ID = Minecraft.getInstance().getWindow().handle();
+            WINDOW_ID = Minecraft.getInstance().getWindow().getWindow();
             X11Controller.setupKeyboardEvent();
             this.driver.initialize(
                 WINDOW_ID,
@@ -97,15 +96,15 @@ public final class X11Controller implements IController {
     public static void setupKeyboardEvent() {
         if (WINDOW_ID == 0) return;
         final Minecraft mc = Minecraft.getInstance();
-        mc.keyboardHandler.setup(mc.getWindow());
+        mc.keyboardHandler.setup(mc.getWindow().getWindow());
         GLFW.glfwSetCharModsCallback(WINDOW_ID, (window, codepoint, mods) ->
             mc.execute(() -> {
                 if (X11Controller.focused != null) {
                     X11Controller.focused.getWrapper()
                         .insertText(String.valueOf(Character.toChars(codepoint)));
-                } else {
-                    mc.keyboardHandler.charTyped(window, new CharacterEvent(codepoint, mods));
                 }
+                // 1.21.8 では KeyboardHandler.charTyped は private のため、
+                // IME 未フォーカス時のフォールバックはスキップ
             })
         );
     }

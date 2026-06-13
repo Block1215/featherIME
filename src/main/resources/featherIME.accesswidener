@@ -13,5 +13,3 @@ accessible field net/minecraft/client/gui/screens/Screen font Lnet/minecraft/cli
 
 accessible field net/minecraft/client/gui/components/CommandSuggestions suggestions Lnet/minecraft/client/gui/components/CommandSuggestions$SuggestionsList;
 accessible field net/minecraft/client/gui/components/CommandSuggestions$SuggestionsList rect Lnet/minecraft/client/renderer/Rect2i;
-
-accessible method net/minecraft/client/KeyboardHandler charTyped (JLnet/minecraft/client/input/CharacterEvent;)V
