@@ -36,17 +36,24 @@ public final class FeatherCaramelChatClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        try {
-            controller = IController.getController();
-        } catch (Exception e) {
-            ModLogger.error("[FeatherIME] Failed to initialize IME controller: {}", e.getMessage());
-            controller = UnknownController.INSTANCE;
-        }
-        ModLogger.log("[FeatherIME] Initialized. controller={}", controller.getClass().getSimpleName());
+        // ここでコントローラを解決してはいけない。onInitializeClient は一部の
+        // Loader/Feather ビルドでは GLFW 初期化より前に走るため、
+        // IController.getController() 内の GLFW.glfwGetPlatform() が「未初期化」
+        // エラーを GLFW のエラーキューに残し、直後の Minecraft 側 GLFW 初期化を
+        // "GLFW error before init" でクラッシュさせる。さらに platform 判定も
+        // 失敗して UnknownController になる。
+        // よって解決は初回利用時 (getController) まで遅延する。GLFW はその頃には
+        // 必ず初期化済み。
+        ModLogger.log("[FeatherIME] Client initialized (IME controller will be resolved lazily).");
     }
 
     public static IController getController() {
-        return controller != null ? controller : UnknownController.INSTANCE;
+        if (controller == null) {
+            controller = IController.getController();
+            ModLogger.log("[FeatherIME] IME controller resolved: {}",
+                controller.getClass().getSimpleName());
+        }
+        return controller;
     }
 
     /**
