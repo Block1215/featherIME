@@ -94,7 +94,7 @@ public final class WinController implements IController {
     private void ensureNativeInitialized() {
         if (nativeInitialized) return;
         try {
-            final long glfwWin = Minecraft.getInstance().getWindow().handle();
+            final long glfwWin = Minecraft.getInstance().getWindow().getWindow();
             final long hwnd    = GLFWNativeWin32.glfwGetWin32Window(glfwWin);
             if (hwnd == 0) {
                 ModLogger.error("[Win] HWND is 0, cannot initialize IME.");
@@ -123,15 +123,7 @@ public final class WinController implements IController {
 
     /** セッション中の最初の入力欄フォーカスかどうか */
     private boolean firstFocusDone = false;
-
-    /**
-     * 現在の IME 状態を表す Java 側フラグ。
-     * 表示判定はこの値を使う。OS の getStatus() を毎フレーム鵜呑みにするのではなく、
-     * 「変化を検知した時だけ書き換える」ことで、強制 [ENG] の効果を維持する。
-     */
     private volatile boolean flagIsJapanese = false;
-
-    /** 前回ポーリングした OS 側の状態（変化検出用） */
     private boolean lastDriverNative = false;
 
     @Override
@@ -140,21 +132,16 @@ public final class WinController implements IController {
         if (!nativeInitialized) return;
         this.driver.set_focus(focus ? 1 : 0);
         if (focus && !firstFocusDone) {
-            // セッション最初の入力欄フォーカス時のみ [ENG] にデフォルト設定。
             forceImeModeHalfwidthEnglish();
-            flagIsJapanese = false;       // 表示用フラグも [ENG] にする
-            lastDriverNative = isImeInNativeMode();  // 変化検出のベースライン
+            flagIsJapanese = false;
+            lastDriverNative = isImeInNativeMode();
             firstFocusDone = true;
         }
     }
 
-    /**
-     * Windows IME の変換モードを「半角英数」に設定する。
-     * imm32.dll を JNA 経由で直接呼ぶことで、ネイティブ DLL の再ビルドなしに対応する。
-     */
     private void forceImeModeHalfwidthEnglish() {
         try {
-            final long glfwWin = Minecraft.getInstance().getWindow().handle();
+            final long glfwWin = Minecraft.getInstance().getWindow().getWindow();
             final long hwndPtr = GLFWNativeWin32.glfwGetWin32Window(glfwWin);
             if (hwndPtr == 0) return;
             final Pointer hwnd = new Pointer(hwndPtr);
@@ -165,11 +152,10 @@ public final class WinController implements IController {
                 final IntByReference sent = new IntByReference();
                 if (Imm32.INSTANCE.ImmGetConversionStatus(himc, conv, sent)) {
                     int newConv = conv.getValue();
-                    newConv &= ~Imm32.IME_CMODE_NATIVE;     // NATIVE off → 英数
-                    newConv &= ~Imm32.IME_CMODE_FULLSHAPE;  // FULLSHAPE off → 半角
+                    newConv &= ~Imm32.IME_CMODE_NATIVE;
+                    newConv &= ~Imm32.IME_CMODE_FULLSHAPE;
                     Imm32.INSTANCE.ImmSetConversionStatus(himc, newConv, sent.getValue());
                 }
-                // IME を閉じる = 半角英数モード相当
                 Imm32.INSTANCE.ImmSetOpenStatus(himc, false);
             } finally {
                 Imm32.INSTANCE.ImmReleaseContext(hwnd, himc);
@@ -179,29 +165,16 @@ public final class WinController implements IController {
         }
     }
 
-    /**
-     * 現在の IME が「全角入力モード」かどうかを Java 側で直接判定する。
-     *
-     * NATIVE bit だけでなく ImmGetOpenStatus も見る:
-     *   - IME が閉じている → 半角英数モード相当 ([ENG])
-     *   - IME が開いている + NATIVE bit on → 全角 ([あ])
-     *   - IME が開いている + NATIVE bit off → 半角英数 ([ENG])
-     *
-     * 半角/全角キーで IME を閉じても NATIVE bit が残っているケースがあるため、
-     * NATIVE bit だけでは [ENG] と判定できず [あ] が表示され続けるバグになる。
-     */
     private boolean isImeInNativeMode() {
         try {
-            final long glfwWin = Minecraft.getInstance().getWindow().handle();
+            final long glfwWin = Minecraft.getInstance().getWindow().getWindow();
             final long hwndPtr = GLFWNativeWin32.glfwGetWin32Window(glfwWin);
             if (hwndPtr == 0) return false;
             final Pointer hwnd = new Pointer(hwndPtr);
             final Pointer himc = Imm32.INSTANCE.ImmGetContext(hwnd);
             if (himc == null || Pointer.nativeValue(himc) == 0) return false;
             try {
-                // IME が閉じていれば必ず [ENG]
                 if (!Imm32.INSTANCE.ImmGetOpenStatus(himc)) return false;
-                // 開いていれば NATIVE bit を見る
                 final IntByReference conv = new IntByReference();
                 final IntByReference sent = new IntByReference();
                 if (Imm32.INSTANCE.ImmGetConversionStatus(himc, conv, sent)) {
@@ -219,17 +192,11 @@ public final class WinController implements IController {
     @Override
     public KeyboardStatus getKeyboardStatus() {
         if (!nativeInitialized) return null;
-
-        // 表示は Java 側のフラグ (flagIsJapanese) を使う。
-        // OS 側状態が変化した時だけフラグを書き換える。
-        // ※ NATIVE bit だけでなく ImmGetOpenStatus も見ることで、
-        //   半角/全角キーで IME を閉じた状態を正しく [ENG] と判定する。
         final boolean driverNow = isImeInNativeMode();
         if (driverNow != lastDriverNative) {
             flagIsJapanese = driverNow;
             lastDriverNative = driverNow;
         }
-
         final Language lang = Driver_Win.LAYOUT_MAP.getOrDefault(
             driver.getKeyboardLayout(), Language.OTHER
         );
