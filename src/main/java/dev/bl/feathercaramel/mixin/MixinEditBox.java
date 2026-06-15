@@ -20,9 +20,11 @@
  */
 package dev.bl.feathercaramel.mixin;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.bl.feathercaramel.controller.EditBoxController;
 import dev.bl.feathercaramel.wrapper.AbstractIMEWrapper;
 import dev.bl.feathercaramel.wrapper.WrapperEditBox;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.EditBox;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -34,7 +36,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.function.Predicate;
 
 @Mixin(value = EditBox.class, priority = 0)
-public abstract class MixinEditBox implements EditBoxController {
+public abstract class MixinEditBox extends GuiComponent implements EditBoxController {
 
     @Unique private WrapperEditBox featherCaramel$wrapper;
     @Unique private int            featherCaramel$cacheCursor;
@@ -185,7 +187,7 @@ public abstract class MixinEditBox implements EditBoxController {
 
     @Inject(method = "renderWidget", at = @At("TAIL"), require = 0)
     private void featherCaramel$renderUnderline(
-            final net.minecraft.client.gui.GuiGraphics g,
+            final PoseStack g,
             final int mx, final int my, final float td, final CallbackInfo ci) {
         if (featherCaramel$wrapper == null) return;
         if (featherCaramel$wrapper.getStatus() != AbstractIMEWrapper.InputStatus.PREVIEW) return;
@@ -202,7 +204,7 @@ public abstract class MixinEditBox implements EditBoxController {
         if (c2 <= c1) return;
         final int x1 = baseX + font.width(value.substring(dp, c1));
         final int x2 = baseX + font.width(value.substring(dp, c2));
-        g.fill(x1, uY, x2, uY + 1, 0xFFFFFFFF);
+        fill(g, x1, uY, x2, uY + 1, 0xFFFFFFFF);
     }
     @Unique
     private void featherCaramel$setStatusToNone() {

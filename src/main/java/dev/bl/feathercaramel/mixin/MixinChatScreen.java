@@ -23,9 +23,9 @@ package dev.bl.feathercaramel.mixin;
 import dev.bl.feathercaramel.controller.EditBoxController;
 import dev.bl.feathercaramel.driver.KeyboardStatus;
 import dev.bl.feathercaramel.wrapper.WrapperEditBox;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -74,12 +74,12 @@ public abstract class MixinChatScreen extends Screen {
 
     @Inject(method = "render", at = @At("HEAD"), require = 0)
     private void featherCaramel$render(
-            final GuiGraphics g, final int mx, final int my, final float td, final CallbackInfo ci) {
+            final PoseStack g, final int mx, final int my, final float td, final CallbackInfo ci) {
         featherCaramel$renderImeStatus(g);
     }
 
     @Unique
-    private void featherCaramel$renderImeStatus(final GuiGraphics g) {
+    private void featherCaramel$renderImeStatus(final PoseStack g) {
         if (this.input == null) return;
         final WrapperEditBox wrapper = EditBoxController.getWrapper(this.input);
         if (wrapper == null) return;
@@ -110,8 +110,8 @@ public abstract class MixinChatScreen extends Screen {
         final int textColor = featherCaramel$fade(0xFFFFFFFF, elapsed);
         if (backColor == 0 && textColor == 0) return;
 
-        g.fill(bsx, bsy, bex, bey, backColor);
-        g.drawString(this.font, display, bsx + 2, bsy + 1, textColor, false);
+        fill(g, bsx, bsy, bex, bey, backColor);
+        this.font.draw(g, display, bsx + 2, bsy + 1, textColor);
     }
 
     @Unique
