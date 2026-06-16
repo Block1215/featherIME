@@ -149,7 +149,7 @@ public abstract class MixinEditBox extends GuiComponent implements EditBoxContro
         }
     }
 
-    @Inject(method = "deleteCharsToPos", at = @At("TAIL"), require = 0)
+    @Inject(method = "deleteChars", at = @At("TAIL"), require = 0)
     private void featherCaramel$deleteCharsToPos(final int pos, final CallbackInfo ci) {
         if (featherCaramel$wrapper != null) {
             featherCaramel$wrapper.setOrigin(value);
@@ -162,7 +162,8 @@ public abstract class MixinEditBox extends GuiComponent implements EditBoxContro
     // 打てないのに OS 側で変換が始まり、その変換中文字列が IME コンテキストに残って
     // アイテム設置後に出現するバグになる。
 
-    @Inject(method = "setFocused", at = @At("TAIL"), require = 0)
+    // 1.19.3 では EditBox のフォーカス設定メソッドは setFocused ではなく setFocus(boolean)。
+    @Inject(method = "setFocus", at = @At("TAIL"), require = 0)
     private void featherCaramel$setFocused(final boolean focused, final CallbackInfo ci) {
         if (featherCaramel$wrapper != null) {
             featherCaramel$wrapper.setFocused((focused || !canLoseFocus) && isEditable);
@@ -185,11 +186,18 @@ public abstract class MixinEditBox extends GuiComponent implements EditBoxContro
     }
 
 
-    @Inject(method = "renderWidget", at = @At("TAIL"), require = 0)
+    // 1.19.3 では AbstractWidget の描画メソッドは renderWidget ではなく renderButton。
+    @Inject(method = "renderButton", at = @At("TAIL"), require = 0)
     private void featherCaramel$renderUnderline(
             final PoseStack g,
             final int mx, final int my, final float td, final CallbackInfo ci) {
         if (featherCaramel$wrapper == null) return;
+        // 汎用フォーカス検出: setFocus/setFocused/changeFocus などメソッド単位の hook では
+        // 一部画面 (ModMenu 検索窓のように開いた瞬間 changeFocus で自動フォーカスされる欄など) を
+        // 取りこぼす。描画は可視 EditBox 毎フレーム呼ばれ実際の focused 状態を読めるので、
+        // ここで毎フレーム IME フォーカスを同期する。setFocused は冪等＆非フォーカス operator への
+        // false は no-op なので、全 EditBox がポーリングしても安全。
+        featherCaramel$syncImeFocus();
         if (featherCaramel$wrapper.getStatus() != AbstractIMEWrapper.InputStatus.PREVIEW) return;
         final int fep = featherCaramel$wrapper.getFirstEndPos();
         final int ssp = featherCaramel$wrapper.getSecondStartPos();
@@ -206,6 +214,16 @@ public abstract class MixinEditBox extends GuiComponent implements EditBoxContro
         final int x2 = baseX + font.width(value.substring(dp, c2));
         fill(g, x1, uY, x2, uY + 1, 0xFFFFFFFF);
     }
+    @Unique
+    private void featherCaramel$syncImeFocus() {
+        if (featherCaramel$wrapper == null) return;
+        final EditBox self = (EditBox) (Object) this;
+        // 実際にこの欄が入力を受け付けられる状態か (フォーカス + 編集可)。
+        // canLoseFocus=false の常時フォーカス欄 (金床名など) も拾う。
+        final boolean active = (self.isFocused() || !canLoseFocus) && isEditable;
+        featherCaramel$wrapper.setFocused(active);
+    }
+
     @Unique
     private void featherCaramel$setStatusToNone() {
         if (featherCaramel$wrapper != null) featherCaramel$wrapper.setToNoneStatus();
